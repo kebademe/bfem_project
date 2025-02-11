@@ -32,3 +32,38 @@ class Notes:
         db.conn.commit()
         db.close()
         print("Notes ajoutées avec succès !")
+
+
+    def get_notes_by_candidat_id(candidat_id):
+        """  Récupère les notes d'un candidat spécifique. """
+        db = Database()
+        db.cursor.execute("""
+            SELECT compo_franc, dictee, etude_de_texte, instruction_civique, histoire_geographie, 
+                   mathematiques, pc_lv2, svt, anglais_ecrit, anglais_oral, eps, epreuve_facultative
+            FROM Notes
+            WHERE candidat_id = ?
+        """, (candidat_id,))
+
+        result = db.cursor.fetchone()  # Récupère une seule ligne (car l'ID est unique)
+        db.close()
+
+        if result:
+            # Retourner les notes sous forme de dictionnaire avec des clés descriptives
+            return {
+                "compo_franc": result[0],
+                "dictee": result[1],
+                "etude_de_texte": result[2],
+                "instruction_civique": result[3],
+                "histoire_geographie": result[4],
+                "mathematiques": result[5],
+                "pc_lv2": result[6],
+                "svt": result[7],
+                "anglais_ecrit": result[8],
+                "anglais_oral": result[9],
+                "eps": result[10],
+                "epreuve_facultative": result[11]
+            }
+        else:
+            # Aucun enregistrement trouvé pour cet ID candidat
+            print(f"Aucune note trouvée pour le candidat avec l'ID {candidat_id}")
+            return None

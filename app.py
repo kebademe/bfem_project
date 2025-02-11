@@ -81,6 +81,10 @@ class App:
                 entry = ttk.Combobox(form_frame, values=["M", "F"], state="readonly", font=("Arial", 10))
                 entry.grid(row=row, column=col * 2 + 1, padx=10, pady=5, sticky="ew")
 
+            elif field == "Epreuve facultative":
+                entry = ttk.Combobox(form_frame, values=["Couture", "Dessin","Musique"], state="readonly", font=("Arial", 10))
+                entry.grid(row=row, column=col * 2 + 1, padx=10, pady=5, sticky="ew")
+
             elif field in ['Choix épreuve facultative', 'Aptitude sportive']:
                 entry = ttk.Combobox(form_frame, values=["OUI", "NON"], state="readonly", font=("Arial", 10))
                 entry.grid(row=row, column=col * 2 + 1, padx=10, pady=5, sticky="ew")
@@ -133,7 +137,7 @@ class App:
         candidats = Candidat.get_all()
         view_window = tk.Toplevel(self.root)
         view_window.title("Liste des Candidats")
-        view_window.geometry("700x600")
+        view_window.geometry("800x500")
 
         tree = ttk.Treeview(view_window, columns=('ID', 'Prénom', 'Nom', 'Numéro Table'), show='headings')
         tree.heading('ID', text='ID')
@@ -179,28 +183,60 @@ class App:
         notes_window.title("Notes du Candidat")
         notes_window.geometry("700x400")
 
-        notes = Notes.get_by_candidat_id(candidat_id)
+        notes = Notes.get_notes_by_candidat_id(candidat_id)
         if not notes:
             messagebox.showinfo("Info", "Aucune note trouvée pour ce candidat.")
             return
 
         # Tableau des notes
-        tree = ttk.Treeview(notes_window, columns=('Matière', 'Note'), show='headings')
-        tree.heading('Matière', text='Matière')
-        tree.heading('Note', text='Note')
+        # Création d'un style pour Treeview
+        style = ttk.Style()
+        style.configure("Treeview.Heading", font=("Helvetica", 12, "bold"), anchor="center")  # Style des en-têtes
+        style.configure("Treeview", font=("Helvetica", 10), rowheight=25)  # Font des cellules
+
+        # Ajout d'une barre de défilement
+        scrollbar = ttk.Scrollbar(notes_window, orient="vertical")
+        scrollbar.pack(side=tk.RIGHT, fill=tk.Y)
+
+        # Tableau des notes
+        tree = ttk.Treeview(
+            notes_window,
+            columns=("Matière", "Note"),
+            show="headings",
+            yscrollcommand=scrollbar.set,  # Liaison avec la scrollbar
+            height=15  # Nombre de lignes visibles
+        )
+        tree.heading("Matière", text="Matière", anchor="center")
+        tree.heading("Note", text="Note", anchor="center")
+
+        # Définir les tailles et alignements des colonnes
+        tree.column("Matière", anchor="w", width=400)
+        tree.column("Note", anchor="center", width=100)
         tree.pack(fill="both", expand=True)
 
-        # Liste des matières correspondant aux champs
+        # Associer la scrollbar au tableau
+        scrollbar.config(command=tree.yview)
+
+        # Liste des matières correspondant aux clés du dictionnaire
         fields = [
-            "Compo. Française", "Dictée", "Étude de Texte", "Instruction Civique",
-            "Histoire-Géo", "Mathématiques", "PC/LV2", "SVT", "Anglais Écrit", "Anglais Oral", "EPS",
-            "Epreuve Facultative"
+            ("Compo. Française", "compo_franc"),
+            ("Dictée", "dictee"),
+            ("Étude de Texte", "etude_de_texte"),
+            ("Instruction Civique", "instruction_civique"),
+            ("Histoire-Géo", "histoire_geographie"),
+            ("Mathématiques", "mathematiques"),
+            ("PC/LV2", "pc_lv2"),
+            ("SVT", "svt"),
+            ("Anglais Écrit", "anglais_ecrit"),
+            ("Anglais Oral", "anglais_oral"),
+            ("EPS", "eps"),
+            ("Epreuve Facultative", "epreuve_facultative")
         ]
 
-        # Ajout des données dans le tableau
-        for i, field in enumerate(fields):
-            tree.insert('', tk.END,
-                        values=(field, notes[i + 2]))  # notes[i+2] car les deux premiers champs sont ID et candidat_id
+        # Ajouter les données dans le tableau
+        for field_label, field_key in fields:
+            tree.insert('', tk.END, values=(field_label, notes[field_key]))
+
 
         def delete_notes():
             confirm = messagebox.askyesno("Confirmation", "Voulez-vous supprimer toutes les notes de ce candidat ?")
@@ -232,8 +268,32 @@ class App:
 
         def save_notes():
             try:
-                data = [candidat_id] + [entries[field].get() for field in fields]
-                Notes.save(data)
+                data =  [entries[field].get() for field in fields]
+                # Extraction des valeurs
+                (
+                    compo_franc, dictee, etude_de_texte, instruction_civique,
+                    histoire_geographie, mathematiques, pc_lv2, svt, anglais_ecrit,
+                    anglais_oral, eps, epreuve_facultative
+                ) = data
+
+                # Création et enregistrement des notes du candidat
+                notes = Notes(
+                    candidat_id= candidat_id,  # Assurez-vous que l'ID est un entier
+                    compo_franc=float(compo_franc),
+                    dictee=float(dictee),
+                    etude_de_texte=float(etude_de_texte),
+                    instruction_civique=float(instruction_civique),
+                    histoire_geographie=float(histoire_geographie),
+                    mathematiques=float(mathematiques),
+                    pc_lv2=float(pc_lv2),
+                    svt=float(svt),
+                    anglais_ecrit=float(anglais_ecrit),
+                    anglais_oral=float(anglais_oral),
+                    eps=float(eps),
+                    epreuve_facultative=float(epreuve_facultative)
+                )
+
+                notes.save()
                 messagebox.showinfo("Succès", "Notes enregistrées avec succès !")
                 notes_window.destroy()
             except Exception as e:
