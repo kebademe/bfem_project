@@ -71,3 +71,5 @@ class Deliberation:
         """ Sauvegarde le résultat du candidat """
         resultat = self.determiner_resultat()
         print(f"Résultat du candidat {self.candidat_id} : {resultat}")
+
+

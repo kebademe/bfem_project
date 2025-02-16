@@ -32,6 +32,42 @@ class Candidat:
         finally:
             db.close()
 
+    def update(self,id):
+        """ Met à jour les informations d'un candidat existant dans la base basé sur l'ID """
+        db = Database()
+        try:
+            # Mise à jour des informations du candidat dans la table `Candidat`
+            db.cursor.execute("""
+                UPDATE Candidat
+                SET numero_table = ?, 
+                    prenom = ?, 
+                    nom = ?, 
+                    date_naissance = ?, 
+                    lieu_naissance = ?, 
+                    sexe = ?, 
+                    nationalite = ?, 
+                    choix_epreuve_facultative = ?, 
+                    epreuve_facultative = ?, 
+                    aptitude_sportive = ?
+                WHERE id = ?
+            """, (
+                self.numero_table, self.prenom, self.nom, self.date_naissance,
+                self.lieu_naissance, self.sexe, self.nationalite, self.choix_epreuve_facultative,
+                self.epreuve_facultative, self.aptitude_sportive, id
+                # L'ID est utilisé ici pour identifier le candidat
+            ))
+
+            if db.cursor.rowcount == 0:  # Vérifier si aucune ligne n'a été mise à jour
+                print("Erreur : Aucun candidat trouvé avec cet ID.")
+            else:
+                db.conn.commit()
+                print("Candidat mis à jour avec succès !")
+        except sqlite3.Error as e:
+            print(f"Erreur lors de la mise à jour : {e}")
+        finally:
+            db.close()
+
+
     @staticmethod
     def get_all():
         """ Récupère tous les candidats """

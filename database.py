@@ -87,6 +87,16 @@ class Database:
             )
         """)
 
+        # Table Resultat
+        self.cursor.execute("""
+                   CREATE TABLE IF NOT EXISTS Resultat (
+                       id INTEGER PRIMARY KEY AUTOINCREMENT,
+                       candidat_id INTEGER UNIQUE NOT NULL,
+                       resultat TEXT NOT NULL,
+                       FOREIGN KEY (candidat_id) REFERENCES Candidat(id) ON DELETE CASCADE
+                   )
+               """)
+
         self.conn.commit()
 
     def close(self):

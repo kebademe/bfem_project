@@ -1,3 +1,5 @@
+import sqlite3
+
 from database import Database
 
 class Notes:
@@ -67,3 +69,44 @@ class Notes:
             # Aucun enregistrement trouvé pour cet ID candidat
             print(f"Aucune note trouvée pour le candidat avec l'ID {candidat_id}")
             return None
+
+    def update(self, candidat_id):
+        """ Met à jour les notes d'un candidat existant """
+        db = Database()
+        try:
+            db.cursor.execute("""
+                    UPDATE Notes
+                    SET compo_franc = ?, dictee = ?, etude_de_texte = ?, instruction_civique = ?, 
+                        histoire_geographie = ?, mathematiques = ?, pc_lv2 = ?, svt = ?, 
+                        anglais_ecrit = ?, anglais_oral = ?, eps = ?, epreuve_facultative = ?
+                    WHERE candidat_id = ?
+                """, (self.compo_franc, self.dictee, self.etude_de_texte, self.instruction_civique,
+                      self.histoire_geographie, self.mathematiques, self.pc_lv2, self.svt,
+                      self.anglais_ecrit, self.anglais_oral, self.eps, self.epreuve_facultative,
+                      candidat_id))
+            db.conn.commit()
+            print("Notes mises à jour avec succès !")
+        except sqlite3.Error as e:
+            print(f"Erreur lors de la mise à jour des notes : {e}")
+        finally:
+            db.close()
+
+    @staticmethod
+    def get_all():
+        """ Récupère toutes les notes pour tous les candidats """
+        db = Database()
+        try:
+            db.cursor.execute("""
+                SELECT id, candidat_id, compo_franc, dictee, etude_de_texte, instruction_civique, 
+                       histoire_geographie, mathematiques, pc_lv2, svt, anglais_ecrit, 
+                       anglais_oral, eps, epreuve_facultative
+                FROM Notes
+            """)
+            notes = db.cursor.fetchall()
+        except sqlite3.Error as e:
+            print(f"Erreur lors de la récupération des notes : {e}")
+            notes = []
+        finally:
+            db.close()
+
+        return notes
